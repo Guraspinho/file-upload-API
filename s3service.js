@@ -20,19 +20,38 @@ const uuid = require('uuid').v4;
 //         }));
 // }
 
-exports.s3Uploadv3 = async (files) =>
+// exports.s3Uploadv3 = async (files) =>
+// {
+//     const s3client = new S3Client();
+
+//     const params = files.map(file =>
+//         {
+//             return {
+//                 Bucket: process.env.AWS_BUCKET_NAME,
+//                 Key:`uploads/${uuid()} - ${file.originalname}`,
+//                 Body: file.buffer
+//             };
+//         });
+
+//         return await Promise.all(params.map(param => s3client.send(new PutObjectCommand(param))));
+
+// }
+
+
+exports.s3Uploadv3 = async (file) =>
 {
     const s3client = new S3Client();
 
-    const params = files.map(file =>
-        {
-            return {
-                Bucket: process.env.AWS_BUCKET_NAME,
-                Key:`uploads/${uuid()} - ${file.originalname}`,
-                Body: file.buffer
-            };
-        });
+    const param = 
+    {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key:`pfp/${uuid()} - ${file.originalname}`,
+        Body: file.buffer
+    };
 
-        return await Promise.all(params.map(param => s3client.send(new PutObjectCommand(param))));
+    await s3client.send(new PutObjectCommand(param));
 
+    const url = `https://${param.Bucket}.s3.amazonaws.com/${encodeURIComponent(param.Key)}`;
+
+    return url;
 }
