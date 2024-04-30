@@ -75,7 +75,7 @@ const fileFilter = (req,file,cb) =>
     }
 }
 
-const upload = multer({ storage, fileFilter, limits: {fileSize: 50000000, files: 2} }); // filesize here is in bits
+const upload = multer({ storage, fileFilter, limits: {fileSize: 50000000} }); // filesize here is in bits
 
 // using SDK v2
 
@@ -101,9 +101,14 @@ app.post('/upload', upload.array('file') ,async (req,res) =>
 {
     try
     {
-        const results = await s3Uploadv3(req.files);
+        if(!req.files)
+        {
+            return res.json({user:{msg:'Please upload a file'}});
+        }
+        const file = req.files[0];
+        const results = await s3Uploadv3(file);
         console.log(results);
-        return res.json({user:{msg:'File was uploaded suecessfully'}})
+        return res.json({user:{msg:'File was uploaded successfully'}})
     } 
     catch (error)
     {
