@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
-const { s3Uploadv3 } = require('./s3service');
+const { s3Uploadv3, s3Service } = require('./s3service');
+const { getCommand, deleteCommand, uploadCommand, updateCommand, s3Operation } = require('./s3service');
 
 // const { s3Uploadv2 } = require('./s3service');
 
@@ -106,13 +107,52 @@ app.post('/upload', upload.array('file') ,async (req,res) =>
             return res.json({user:{msg:'Please upload a file'}});
         }
         const file = req.files[0];
-        const results = await s3Uploadv3(file);
-        console.log(results);
+        // const results = await s3Uploadv3(file);
+
+
+        const { command, Key } = uploadCommand(file);
+        const { response } = await s3Operation(Key, command);
+        console.log(Key);
+
         return res.json({user:{msg:'File was uploaded successfully'}})
     } 
     catch (error)
     {
         console.log(error)
+    }
+
+});
+
+
+app.get('/download', async (req,res) =>
+{
+    try
+    {
+        const command = getCommand('photos/b237b2c1-7a51-463c-a1df-13833ad5cc2c - 46996.png');
+        const results = await s3Operation(command);
+        console.log(results);   
+        res.json({user:{msg:'File was downloaded successfully'}})
+    }
+    catch (error)
+    {
+        console.error(error);
+    }
+});
+
+
+app.delete('/delete', async (req,res) =>
+{
+    try
+    {
+        const command = deleteCommand('photos/b237b2c1-7a51-463c-a1df-13833ad5cc2c - 46996.png');
+        const results = await s3Operation(command);
+        console.log(results);   
+        res.json({user:{msg:'File was deleted successfully'}})
+    }
+
+    catch (error)
+    {
+        console.error(error);    
     }
 
 });
@@ -149,3 +189,23 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}...`);
 });
+
+
+
+
+
+
+// file was uploaded, extracted the key and stored in a db
+// key is used to access the file in the storage
+// the url is signed and sent to the frontend
+
+// key is used to display the file in the frontend
+// key is used to delete the file
+// key is used to update the file
+// key is used to download the file
+
+
+
+
+
+
