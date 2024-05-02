@@ -1,5 +1,6 @@
 //const {S3} = require('aws-sdk');
 const {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
 const { v4: uuidv4 } = require('uuid');
 
 // exports.s3Uploadv2 = async (files) =>
@@ -161,11 +162,33 @@ const s3Operation = async (Key, command) => {
     return { Key, response };
 }
 
+const getSignedUrlFunction = async (Key) =>
+{
+    const s3client = new S3Client({
+        region: 'nyc3',
+        endpoint: 'https://nyc3.digitaloceanspaces.com',
+        credentials: {
+            accessKeyId: process.env.SPACES_ACCESS_KEY,
+            secretAccessKey: process.env.SPACES_SECRET_KEY
+        }
+    });
+
+    const command = new GetObjectCommand({
+        Bucket: process.env.SPACES_BUCKET_NAME,
+        Key: Key
+    });
+
+    const signedUrl = await getSignedUrl(s3client, command, { expiresIn: 3600 }); // URL expires in 1 hour
+    return signedUrl;
+}
+
+
 module.exports =
 {
     getCommand,
     deleteCommand,
     uploadCommand,
     updateCommand,
-    s3Operation
+    s3Operation,
+    getSignedUrlFunction
 }

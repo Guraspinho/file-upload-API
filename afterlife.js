@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { s3Uploadv3, s3Service } = require('./s3service');
-const { getCommand, deleteCommand, uploadCommand, updateCommand, s3Operation } = require('./s3service');
+const { getCommand, deleteCommand, uploadCommand, updateCommand, s3Operation, getSignedUrlFunction } = require('./s3service');
 
 // const { s3Uploadv2 } = require('./s3service');
 
@@ -98,6 +98,8 @@ const upload = multer({ storage, fileFilter, limits: {fileSize: 50000000} }); //
 
 // using SDK v3
 
+// upload a file
+
 app.post('/upload', upload.array('file') ,async (req,res) =>
 {
     try
@@ -123,6 +125,7 @@ app.post('/upload', upload.array('file') ,async (req,res) =>
 
 });
 
+// get a file
 
 app.get('/download', async (req,res) =>
 {
@@ -140,6 +143,7 @@ app.get('/download', async (req,res) =>
     }
 });
 
+// delete a file
 
 app.delete('/delete', async (req, res) => {
     try
@@ -153,6 +157,45 @@ app.delete('/delete', async (req, res) => {
     }
     catch (error)
     {
+        console.error(error);
+    }
+});
+
+
+// update a file
+
+app.put('/update', upload.array('file'), async (req, res) =>
+{
+    try
+    {
+        if(!req.files)
+        {
+            return res.json({user:{msg:'Please upload a file'}});
+        }
+        const file = req.files[0];
+        const Key = 'photos/4f51f5ee-238f-4a5b-bd2f-df788396f548 - 46996.png'; // Replace with the actual key
+        const command = updateCommand(Key, file);
+        const { response } = await s3Operation(Key, command);
+        console.log(Key);
+
+        res.json({user:{msg:'File was updated successfully'}});
+    }
+    catch (error)
+    {
+        console.error(error);
+    }
+}
+);
+
+
+app.get('/signedurl', async (req, res) => {
+    try {
+        const Key = 'photos/1a65809e-cefa-450b-b4bd-ff87eae40659 - 46996.png'; // Replace with the actual key
+        const signedUrl = await getSignedUrlFunction(Key);
+        console.log(signedUrl);
+
+        res.json({user:{msg:'Signed URL generated successfully', signedUrl}});
+    } catch (error) {
         console.error(error);
     }
 });
@@ -195,13 +238,14 @@ app.listen(PORT, () => {
 
 
 
-// file was uploaded, extracted the key and stored in a db
-// key is used to access the file in the storage
+// file was uploaded, extracted the key and stored in a db +
+// key is used to access the file in the storage +
+
 // the url is signed and sent to the frontend
 
 // key is used to display the file in the frontend
-// key is used to delete the file
-// key is used to update the file
+// key is used to delete the file +
+// key is used to update the file +
 // key is used to download the file
 
 
