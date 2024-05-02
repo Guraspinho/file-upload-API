@@ -128,8 +128,9 @@ app.get('/download', async (req,res) =>
 {
     try
     {
-        const command = getCommand('photos/b237b2c1-7a51-463c-a1df-13833ad5cc2c - 46996.png');
-        const results = await s3Operation(command);
+        const Key = 'photos/b237b2c1-7a51-463c-a1df-13833ad5cc2c - 46996.png';
+        const command = getCommand(Key);
+        const results = await s3Operation(command, Key);
         console.log(results);   
         res.json({user:{msg:'File was downloaded successfully'}})
     }
@@ -140,21 +141,20 @@ app.get('/download', async (req,res) =>
 });
 
 
-app.delete('/delete', async (req,res) =>
-{
+app.delete('/delete', async (req, res) => {
     try
     {
-        const command = deleteCommand('photos/b237b2c1-7a51-463c-a1df-13833ad5cc2c - 46996.png');
-        const results = await s3Operation(command);
-        console.log(results);   
-        res.json({user:{msg:'File was deleted successfully'}})
-    }
+        const Key = 'photos/3f021e14-0f74-4c95-95a5-8e24ef7297b8 - 46996.png'; // Replace with the actual key
+        const command = deleteCommand(Key);
+        const { response } = await s3Operation(Key, command);
+        console.log(Key);
 
+        res.json({user:{msg:'File was deleted successfully'}});
+    }
     catch (error)
     {
-        console.error(error);    
+        console.error(error);
     }
-
 });
 
 
